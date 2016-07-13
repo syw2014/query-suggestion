@@ -13,26 +13,28 @@
 #define UTIL_NORMALIZE_H
 
 #include <iostream>
+#include <string>
+#include <stdint.h>
 #include "utf8.h"
 
-class Normalize() {
+class Normalize {
     public:
         Normalize(){
         }
 
         // Convert a string to utf8 encoding, replace any invalid codes by unicode
-        bool ToUTF8(std::string& str) {
+        static bool ToUTF8(std::string& str) {
             if (str.empty()) 
                 return false;
             std::string temp;
-            utf8::replace_invaild(str.begin(), str.end(), std::back_inserter(temp));
+            utf8::replace_invalid(str.begin(), str.end(), std::back_inserter(temp));
             
             str = temp;
             return true;
         }
 
         // Convert a string to lower case
-        void ToLower(std::string& str) {
+        static void ToLower(std::string& str) {
             std::string ustr(str);
             str = "";
             std::string::size_type idx;
@@ -42,7 +44,7 @@ class Normalize() {
         }
         
         // Convert a string to upper case
-        void ToUpper(std::string& str) {
+        static void ToUpper(std::string& str) {
             std::string ustr(str);
             str = "";
             std::string::size_type idx;
@@ -52,26 +54,27 @@ class Normalize() {
         }
         
         // Check a string whether it is a valid utf8 encoding string
-        bool IsValidUTF8(const std::string& str) const {
+        static bool IsValidUTF8(const std::string& str) {
             if (str.empty())
                 return false;
-            std::string::iterator iter = utf8::find_invalid(str.begin(), str.end());
+            std::string::const_iterator iter = utf8::find_invalid(str.begin(), str.end());
             if (iter != str.end()) {
                 std::cout << "Invalid code found!" << std::endl;
-                std::cout << "This part is fine: " << std::string(str.begin(), iter) << std::endl;
+                std::string temp(str.begin(), iter);
+                std::cout << "This part is fine: " << temp << std::endl;
                 return false;
             }
             return true;
         }
 
         // Check string is utf8 encode
-        bool GetUS2Char(const std::string& str, std::vector<uint32_t>& uChars, bool utf8_check = false) {
+        static bool GetUS2Char(const std::string& str, std::vector<uint32_t>& uChars) {
             uChars.clear();
-            if (utf8_check) {
+           /* if (utf8_check) {
                if (!ToUTF8(str))
                    return false;
-            }
-            std::string::iterator iter = str.begin();
+            }*/
+            std::string::const_iterator iter = str.begin();
             while (iter != str.end()) {
                 uint32_t code = utf8::next(iter, str.end());
                 uChars.push_back(code);
@@ -80,7 +83,7 @@ class Normalize() {
         }
 
         // Determine whether a string is a chinese characters
-        bool IsChinese(const std::string& str) const {
+       static bool IsChinese(const std::string& str) {
             if (!IsValidUTF8(str)) {
                // std::cout << "string is a invalid utf8 encoding!\n";
                 return false;
@@ -97,7 +100,7 @@ class Normalize() {
 
     private:
         // Determine whether a uint16_t char is a chinese character
-        bool IsChineseChar_(uint16_t ucs2char) const {
+        static bool IsChineseChar_(uint16_t ucs2char) {
             if(((ucs2char >= 0x2E80 && ucs2char <= 0x2EF3) // CJK Radicals
                   ||(ucs2char >= 0x2F00 && ucs2char <= 0x2FD5) // Kangxi Radicals Range: 0x2F00 - 0X2FDF
                   ||(ucs2char >= 0x3400 && ucs2char <= 0x4DB5) // CJK Unified Ideographs Extension A
@@ -128,18 +131,18 @@ class Normalize() {
         }
 
         // Convert a char to lower case
-        inline char ToLower_(char chConv) {
+       static inline char ToUpper_(char chConv) {
             return (chConv >= 'a' && chConv <= 'z') ? (chConv & 0xdf) : chConv;
         }
-        inline wchar_t ToLower_(wchar_t chConv) {
+       static inline wchar_t ToUpper_(wchar_t chConv) {
             return (chConv >= L'a' && chConv <= L'z') ? (chConv & 0x00df) : chConv;
         }
 
         // Convert a char to upper case
-        inline char ToUpper_(char chConv) {
+       static inline char ToLower_(char chConv) {
             return (chConv >= 'A' && chConv <= 'Z') ? (chConv | 0x20) : chConv;
         }
-        inline wchar_t ToUpper_(wchar_t chConv) {
+       static inline wchar_t ToLower_(wchar_t chConv) {
             return (chConv >= L'A' && chConv <= 'Z') ? (chConv | 0x0020) : chConv;
         }
 };
