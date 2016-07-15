@@ -35,10 +35,12 @@ class Normalize {
 
         // TODO:
         static bool RemoveInvalidUTF8(std::string& str) {
-            std::string::const_iterator iter;
-            iter = utf8::find_invalid(str.begin(), str.end());
-            std::string temp(line.begin(), iter);
+            std::string::iterator iter = utf8::find_invalid(str.begin(), str.end());
+            if (iter == str.end())
+                return false;
+            std::string temp(str.begin(), iter);
             str = temp;
+            return true;
         }
 
         // Convert a string to lower case

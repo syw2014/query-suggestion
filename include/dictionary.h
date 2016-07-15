@@ -87,6 +87,7 @@ class Dictionary
             filter_pinyin_.clear();
 
             Init();
+            LoadResource(dir);
         }
         ~Dictionary() {
         }

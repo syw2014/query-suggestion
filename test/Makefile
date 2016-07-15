@@ -2,7 +2,8 @@
 PUB_DIR:=../include/
 SRC_INC:= ./
 
-PROG = t_normalize_unit
+#PROG = t_normalize_unit
+PROG = t_dictionary_unit
 CFLAGS = -W -Wall -I../ 
 SOURCES = $(PROG).cc 
 
