@@ -37,6 +37,9 @@ BOOST_AUTO_TEST_CASE (UTF8Encoding) {
     std::string str("a\x80\xe0\xa0\xc0\xaf\xed\xa0\x80z");
     Normalize::ToUTF8(str);
     BOOST_CHECK_MESSAGE(str == "a����z", "To utf8 result:" << str);
+    str = "把";
+   // Normalize::ToUTF8(str);
+   // std::cout << "T: " << str << "\t T[0]:" << tt << std::endl;
 }
 
 // 4 Normalize::IsValidUTF8()

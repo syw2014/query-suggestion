@@ -12,6 +12,7 @@
 #define DICTIONARY_H
 
 #include <iostream>
+#include <fstream>
 
 #include "util/normalize.h"
 #include "util/darts.h"
@@ -23,13 +24,286 @@
 
 typedef Darts::DoubleArray Trie;
 typedef uint16_t UCS2Char;
+typedef boost::unordered_map<UCS2Char, std::vector<std::string> > Cn2PinYinType; // chinese word to pinyin list
+typedef boost::unordered_map<std::string, std::vector<UCS2Char> > PinYin2CnType; // pinyin to word list
+
+
+// class dictionary was created based on trie , usage of this class
+// Dictioanry::Segment(): given a string, sement it into pinyin tokens, like "yinhang" , tokens:'yin','hang'; 
+// Dictionary::GetChar(): given pinyin return it's chinese character list
+// Dictionary::GetPinYin(): given a chinese char return it's pinyin list, do not distinguish ployphone.
 class Dictionary
 {
     private:
         Trie trie_; // trie tree
-        typedef boost::unordered_map<UCS2Char, std::vector<std::string> > Cn2PinYinType; // chinese word to pinyin list
-        typedef boost::unordered_map<std::string, std::vector<UCS2Char> > PinYin2CnType; // pinyin to word list
+        Cn2PinYinType cn2pinyin_;         // chinese character -> pinyin list
+        PinYin2CnType pinyin2cn_;         // pinyin -> chinese character list
+        std::vector<std::string> pinyin_; // all single pinyin        
+        boost::unordered_map<std::string, bool> filter_pinyin_; // filter pinyin
+        
+        // load pinyin and chinese character from file
+        // @dir: the resource path
+        void Load_(const std::string& dir) {
+           
+            // TODO:
+            // quick load
+            /* int32_t flag = 1; // to check if the bin file opened successfully.
+            try {
+                if ((flag = trie_.open((dir+"/pinyin.bin").c_str())) == 0) {
+                }
+            } catch(...) {  // do not throw exception
+            } */
+            
+            std::ifstream ifs((dir+"/pinyin.txt").c_str());
+            if(!ifs.is_open()) {
+                std::cout << "Open " << (dir+"/pinyin.txt") << "failed!\n";
+                return;
+            }
+            std::string line;
+            std::set<std::string> pinyinSet;
+            while (getline(ifs, line)) {
+                boost::algorithm::trim(line);
+                std::vector<std::string> vec;
+                boost::algorithm::split(vec, line, boost::is_any_of(" "));
+                if (vec.size() != 2)
+                    continue;
+                std::string cnChar = vec[0];
+                std::string pinyin = vec[1].substr(0, vec[1].length()-1); 
+                Noramlize::ToUTF8(cnChar);
+                // filter pinyin
+                if (filter_pinyin_.find(pinyin) == filter_pinyin_.end())
+                AddPinYinCnMap(pinyin, cnChar);
+                pinyinSet.insert(pinyin);
+            }
+            pinyin_.insert(pinyin_.end(), pinyinSet.begin(), pinyinSet.end());
+            std::cout << "Resouces loaded pinyin size: " << pinyin_.size() << std::endl; 
+        }
 
+    public:
+        Dictionary(const std::string& dir) {
+            cn2pinyin_.clear();
+            pinyin2cn_.clear();
+            pinyin_.clear();
+            filter_pinyin_.clear();
+
+            Init();
+        }
+        ~Dictionary() {
+        }
+
+        void Init() {
+
+            // add other pinyin
+            pinyin_.push_back("chon");
+            pinyin_.push_back("con");
+            pinyin_.push_back("don");
+            pinyin_.push_back("gon");
+            pinyin_.push_back("hon");
+            pinyin_.push_back("jion");
+            pinyin_.push_back("kon");
+            pinyin_.push_back("lon");
+            pinyin_.push_back("non");
+            pinyin_.push_back("qion");
+            pinyin_.push_back("ron");
+            pinyin_.push_back("son");
+            pinyin_.push_back("ton");
+            pinyin_.push_back("xion");
+            pinyin_.push_back("yon");
+            pinyin_.push_back("zhon");
+            pinyin_.push_back("zon");
+
+            // add filter pinyin
+            filter_pinyin_.insert(std::make_pair("n", 1));
+            filter_pinyin_.insert(std::make_pair("ng", 1));
+            filter_pinyin_.insert(std::make_pair("m", 1));
+            filter_pinyin_.insert(std::make_pair("o", 1));
+        }
+        // load resource from file
+        void LoadResource(const std::string& dir) {
+            if (dir.empty()) {
+                std::cout << "directory is not exists!\n";
+                return;
+            }
+
+            // load pinyin from file
+            Load_(dir);
+            // build trie
+            std::size_t SIZE = pinyin_.size();
+            std::vector<std::size_t> lengths(SIZE);
+            typedef Darts::DoubleArray::value_type value_type;
+            std::vector<value_type> states(SIZE);
+            std::vector<const char*> keys(SIZE);
+            for (uint32_t i = 0; i < SIZE; ++i) {
+                keys[i] = pinyin_[i].c_str();
+                lengths[i] = pinyin_[i].length();
+                states[i] = i;
+            }
+            
+            assert(keys.size() == pinyin_.size());
+            trie_.build(keys.size(), &keys[0], &lengths[0], &states[0]);
+            // TODO:
+            // save bin file
+        }
+
+        // Add pinyin and chinese char into map
+        void AddPinYinCnMap(const std::string& pinyin, const std::string& cnChar) {
+            // Add cnChar
+            Cn2PinYinType::iterator cnIter;
+            cnIter = cn2pinyin_.find(cnChar);
+            if (cnIter == cn2pinyin_.end()) { // not found in map
+                std::vector<std::string> pinyin_list(1, pinyin);
+                cn2pinyin_.insert(std::make_pair(cnChar, pinyin_list));
+            } else { // add in the previous list
+                std::vector<std::string>& pinyin_list = cnIter->second;
+                std::vector<std::string>::iterator pyIter;
+                pyIter = std::find(pinyin_list.begin(), pinyin_list.end(), pinyin);
+                if (pyIter == pinyin_list.end()) {
+                    pinyin_list.push_back(pinyin);
+                }
+            }
+
+            // Add pinyin
+            PinYin2CnType::iterator pyIter;
+            pyIter = pinyin2cn_.find(pinyin);
+            if (pyIter == pinyin2cn_.end()) {
+                std::vector<std::string> cnChar_list(1, cnChar);
+                pinyin2cn_.insert(std::make_pair(pinyin, cnChar));
+            } else {
+                std::vector<std::string>& cnChar_list = pyIter->second;
+                std::vector<std::string>::iterator cnIter;
+                cnIter = std::find(cnChar_list.begin(), cnChar_list.end(), cnChar);
+                if (cnIter == cnChar_list.end()) {
+                    cnChar_list.push_back(cnChar);
+                }
+            }
+        }
+
+        // pinyin tokenizer
+        void Segment(const std::string& pinyin, std::vector<std::string>& result) {
+            if (pinyin.clear())
+                return;
+            Fmm(pinyin, result);
+        }
+
+        // get chinese character based on pinyin string
+        bool GetChar(const std::string& pinyin, std::vector<std::string>& result) {
+            PinYin2CnType::iterator cnIter;
+            cnIter = pinyin2cn_.find(pinyin);
+            if (cnIter != pinyin2cn_.end()) {
+                result = cnIter->second;
+                return true;
+            }
+            return false;
+        }
+
+        // get pinyin list based on chinese character string
+        bool GetPinYin(const std::string& cnChar, std::vector<std::string>& result) {
+            result.clear();
+            if (cnChar.empty()) {
+                return false;
+            }
+
+            GetPinYin_(cnChar, result);
+        }
+
+        // input chinese character and pinyin combination and get the pinyin
+        // recursive function
+        void GetPinYin_(const std::string& cnChar,const std::string& mid_result
+                        ,std::vector<std::string>& result) {
+            if (result.size() >= 1024)
+                return;
+
+            std::string uchar(cnChar);
+            Normlaize::ToUTF8(uchar);
+            std::vector<std::string> pinyin_term_list;
+            
+            // case 1, only chinese and has pinyin
+            if (!uchar.empty() && Normalize::IsChinese(uchar)
+                    && (GetPinYinTerm(uChar, pinyin_term_list))) {
+                std::string remain = uchar.substr(1);
+                std::string new_mid(mid_result);
+                for (uint32_t i = 0; i < pinyin_term_list.size(); ++i) {
+                    std::string mid = new_mid + pinyin_term_list[i];
+                    GetPinYin_(remain, mid, result_list);
+                }
+            } else {
+                if (!uchar.empty() && !Normalize::IsChinese(uchar)) {
+                    std::string remain = uchar.substr(1);
+                    std::string mid = mind_result + uchar.substr(0,1);
+                    
+                    GetPinYin_(remain, new_mid, result);
+                } else {
+                    result.push_back(mid_result);
+                }
+            }
+        }
+
+        // get pinyin list from chinese character map
+        bool GetPinYinTerm(const std::string& cnChar, std::vector<std::string>& result) {
+            Cn2PinYinType::iterator cnIter;
+            cnIter = cn2pinyin_.find(cnChar);
+            if (cnIter != cn2pinyin_.end()) {
+                result = cnIter->second;
+                return true;
+            }
+            return false;
+        }
+
+        // maximum match
+        void Fmm(const std::string& line, std::vector<std::string>& r) {
+            r.clear();
+            
+            std::vector<uint32_t> lens, cumu_lens;
+
+            // remove invalid encoding
+            Normalize::RemoveInvalidUTF8(line);
+            std::string::iterator it = line.begin();
+            while (it != line.end()) {
+                uint32_t code = utf8::next(it, line.end());
+                std::string _str; // insert from string back
+                utf8::append(code, std::back_inserter(_str));
+                lens.push_back(_str.length());
+                if (cumu_lens.size() > 0) {
+                    cumu_lens.push_back(_str.length()+cumu_lens.back());
+                } else {
+                    cumu_lens.push_back(_str.length());
+                }
+            }
+
+            // start maximum match
+            std::size_t key_pos = 0;
+            for (std::size_t j = 0; j < lens.size(); ++j) {
+                std::size_t last_j = j, jj = j;
+                Trie::value_type last_state = -1;
+                Trie::value_type state;
+                std::size_t node_pos = 0;
+
+                // traverse trie and check the node exist or not
+                while (j < lens.size()
+                    && (state=trie_.traverse(line.c_str(), node_pos, key_pos, cumu_lens[j])) != -2) {
+                    j++;
+                    if (state < 0)
+                        continue;
+                    last_state = state;
+                    last_j = j -1;
+                }
+
+                // found
+                if (last_state >=0) {
+                    std::string py;
+                    if ((uint32_t)last_state < pinyin_.size()) {
+                        py = std::string(line.c_str()+cumu_lens[jj]-lens[jj],line.c_str()+cumu_lens[last_j]);
+                        r.push_back(py);
+                    }
+                } else {
+                    std::string py;
+                    py = std::string(line.c_str()+cumu_lens[jj]-lens[jj], line.c_str()+cumu_lens[jj]);
+                    r.push_back(py);
+                }
+                j = last_j;
+                key_pos = cumu_lens[j];
+            }
+        }
 };
 
 #endif // dictionary.h
