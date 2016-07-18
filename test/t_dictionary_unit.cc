@@ -35,7 +35,7 @@ void display_convert_cn(const std::string& input) {
     if (!seg.GetChar(input, vec))
         return;
     
-    std::cout << "Input Cn:" << input << std::endl;
+    std::cout << "Input PinYin:" << input << std::endl;
     for (uint32_t i = 0; i < vec.size(); ++i) {
         std::cout << "Result: " << vec[i] << ",";
     }
@@ -81,14 +81,23 @@ BOOST_AUTO_TEST_CASE(PinYinSegment) {
 
 // Case 2, pinyin convert to chinese characters
 BOOST_AUTO_TEST_CASE(PinYin2Cn) {
+    display_convert_cn("zhen");
+    display_convert_cn("zi");
 }
 
 // Case 3, single chinese words conver to pinyin
 BOOST_AUTO_TEST_CASE(Cn2PinYin) {
+    display_cn_convert_py("白");
+    display_cn_convert_py("爱");
+    display_cn_convert_py("鬼");
 }
 
 // Case 4, chinese string convers to pinyin
 BOOST_AUTO_TEST_CASE(CnStr2PinYin) {
+    display_convert_py("我们的爱");
+    display_convert_py("你在哪儿");
+    display_convert_py("中过");
+    display_convert_py("哈哈");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
