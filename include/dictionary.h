@@ -223,20 +223,18 @@ class Dictionary
 
         // input chinese character and pinyin combination and get the pinyin
         // recursive function
-        void GetPinYin_(const std::string& cnChar,const std::string& mid_result
+        void GetPinYin_(const std::vector<UCS2Char>& cnChars,const std::string& mid_result
                         ,std::vector<std::string>& result_list) {
             if (result_list.size() >= 1024)
                 return;
 
-            std::string uchar(cnChar);
-            Normalize::ToUTF8(uchar);
             std::vector<std::string> pinyin_term_list;
             
             // case 1, only chinese and has pinyin
-            if (!uchar.empty() && Normalize::IsChinese(uchar)
-                    && (GetPinYinTerm(&uchar[0], pinyin_term_list))) {
-                std::string remain = uchar.substr(1);
-                std::cout << "T1: " << remain << std::endl;
+            if (!cnChars.empty() && Normalize::IsChinese(cnChars[0])
+                    && (GetPinYinTerm(cnChars[0], pinyin_term_list))) {
+                std::vector<UCS2Char> remain(uchars.begin()+1,uchars.end());
+                std::cout << "T1: " << remain.size() << std::endl;
                 std::string new_mid(mid_result);
                 for (uint32_t i = 0; i < pinyin_term_list.size(); ++i) {
                     std::string mid = new_mid + pinyin_term_list[i];
@@ -244,10 +242,11 @@ class Dictionary
                     GetPinYin_(remain, mid, result_list);
                 }
             } else {
-                if (!uchar.empty() && !Normalize::IsChinese(uchar)) {
-                    std::string remain = uchar.substr(1);
-                    std::string mid = mid_result + uchar.substr(0,1);
-                    std::cout << "T3: " << remain << std::endl;
+                if (!cnChars.empty() && !Normalize::IsChinese(cnChars[0])) {
+                    std::vector<UCS2Char> remain(uchars.begin()+1,uchars.end());
+                    std::string tmp = Normalize::Utf16ToUTF8Str(remain[0]);
+                    std::string mid = mid_result + tmp;
+                    std::cout << "T3: " << mid << std::endl;
                     GetPinYin_(remain, mid, result_list);
                 } else {
                     result_list.push_back(mid_result);
@@ -257,17 +256,15 @@ class Dictionary
         }
         
         // get pinyin list from chinese character map
-       /* bool GetPinYinTerm(const std::string& cnChar, std::vector<std::string>& result) {
-            std::vector<UCS2Char> cnChars;
-            utf8::utf8to16(cnChar.begin(), cnChar.end(), std::back_inserter(cnChars));
+        bool GetPinYinTerm(const UCS2Char& cnChar, std::vector<std::string>& result) {
             Cn2PinYinType::iterator cnIter;
-            cnIter = cn2pinyin_.find(cnChars[0]);
+            cnIter = cn2pinyin_.find(cnChar);
             if (cnIter != cn2pinyin_.end()) {
                 result = cnIter->second;
                 return true;
             }
             return false;
-        }*/
+        }
 
         // Reload
         // get pinyin list from chinese character map

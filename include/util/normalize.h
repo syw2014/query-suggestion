@@ -109,6 +109,11 @@ class Normalize {
             return true;
         }   
 
+       // Reload
+       static bool IsChinese(const uint16_t& UCS2Char) {
+           return IsChineseChar_(UCS2Char);
+       }
+
        // convert an utf16 encoding(uint16_t) to a utf8 string
        static bool Utf16ToUTF8Str(const std::vector<uint16_t>& utf16_chars, std::string& utf8str) {
            utf8str = "";
