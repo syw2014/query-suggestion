@@ -12,7 +12,7 @@ all: $(PROG)
 
 LDFLAGS=-lboost_system -lboost_serialization -lboost_filesystem -lboost_unit_test_framework
 $(PROG): $(SOURCES) 
-	$(CC) -o $(PROG) $(SOURCES) $(CFLAGS) $(LDFLAGS) -I $(SRC_INC) -I $(PUB_DIR)
+	$(CC) -g -o $(PROG) $(SOURCES) $(CFLAGS) $(LDFLAGS) -I $(SRC_INC) -I $(PUB_DIR)
 
 
 

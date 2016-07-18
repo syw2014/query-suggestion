@@ -97,7 +97,7 @@ class Dictionary
         void Init() {
 
             // add other pinyin
-            pinyin_.push_back("chon");
+  /*          pinyin_.push_back("chon");
             pinyin_.push_back("con");
             pinyin_.push_back("don");
             pinyin_.push_back("gon");
@@ -114,7 +114,7 @@ class Dictionary
             pinyin_.push_back("yon");
             pinyin_.push_back("zhon");
             pinyin_.push_back("zon");
-
+*/
             // add filter pinyin
             filter_pinyin_.insert(std::make_pair("n", 1));
             filter_pinyin_.insert(std::make_pair("ng", 1));
@@ -176,8 +176,8 @@ class Dictionary
                 std::vector<UCS2Char> cnChar_list(1, cnChars[0]);
                 pinyin2cn_.insert(std::make_pair(pinyin, cnChars[0]));
             } else {
-                std::vector<std::string>& cnChar_list = pyIter->second;
-                std::vector<std::string>::iterator cnIter;
+                std::vector<UCS2Char>& cnChar_list = pyIter->second;
+                std::vector<UCS2Char>::iterator cnIter;
                 cnIter = std::find(cnChar_list.begin(), cnChar_list.end(), cnChars[0]);
                 if (cnIter == cnChar_list.end()) {
                     cnChar_list.push_back(cnChars[0]);
@@ -187,7 +187,7 @@ class Dictionary
 
         // pinyin tokenizer
         void Segment(const std::string& pinyin, std::vector<std::string>& result) {
-            if (pinyin.clear())
+            if (pinyin.empty())
                 return;
             Fmm(pinyin, result);
         }
@@ -218,23 +218,24 @@ class Dictionary
                 return false;
             }
 
-            GetPinYin_(cnChar, result);
+            GetPinYin_(cnChar, "", result);
+            return true;
         }
 
         // input chinese character and pinyin combination and get the pinyin
         // recursive function
         void GetPinYin_(const std::string& cnChar,const std::string& mid_result
-                        ,std::vector<std::string>& result) {
-            if (result.size() >= 1024)
+                        ,std::vector<std::string>& result_list) {
+            if (result_list.size() >= 1024)
                 return;
 
             std::string uchar(cnChar);
-            Normlaize::ToUTF8(uchar);
+            Normalize::ToUTF8(uchar);
             std::vector<std::string> pinyin_term_list;
             
             // case 1, only chinese and has pinyin
             if (!uchar.empty() && Normalize::IsChinese(uchar)
-                    && (GetPinYinTerm(uChar, pinyin_term_list))) {
+                    && (GetPinYinTerm(uchar, pinyin_term_list))) {
                 std::string remain = uchar.substr(1);
                 std::string new_mid(mid_result);
                 for (uint32_t i = 0; i < pinyin_term_list.size(); ++i) {
@@ -244,11 +245,11 @@ class Dictionary
             } else {
                 if (!uchar.empty() && !Normalize::IsChinese(uchar)) {
                     std::string remain = uchar.substr(1);
-                    std::string mid = mind_result + uchar.substr(0,1);
+                    std::string mid = mid_result + uchar.substr(0,1);
                     
-                    GetPinYin_(remain, new_mid, result);
+                    GetPinYin_(remain, mid, result_list);
                 } else {
-                    result.push_back(mid_result);
+                    result_list.push_back(mid_result);
                 }
             }
         }
@@ -259,7 +260,7 @@ class Dictionary
             utf8::utf8to16(cnChar.begin(), cnChar.end(), std::back_inserter(cnChars));
             for (uint32_t i = 0; i < cnChars.size(); ++i) {
                 Cn2PinYinType::iterator cnIter;
-                cnIter = cn2pinyin_.find(cnChar);
+                cnIter = cn2pinyin_.find(cnChars[i]);
                 if (cnIter != cn2pinyin_.end()) {
                     result = cnIter->second;
                     return true;
@@ -271,14 +272,14 @@ class Dictionary
         // maximum match
         void Fmm(const std::string& line, std::vector<std::string>& r) {
             r.clear();
-            
+            std::string uline(line);
             std::vector<uint32_t> lens, cumu_lens;
 
             // remove invalid encoding
-            Normalize::RemoveInvalidUTF8(line);
-            std::string::iterator it = line.begin();
-            while (it != line.end()) {
-                uint32_t code = utf8::next(it, line.end());
+            Normalize::RemoveInvalidUTF8(uline);
+            std::string::iterator it = uline.begin();
+            while (it != uline.end()) {
+                uint32_t code = utf8::next(it, uline.end());
                 std::string _str; // insert from string back
                 utf8::append(code, std::back_inserter(_str));
                 lens.push_back(_str.length());
@@ -299,7 +300,7 @@ class Dictionary
 
                 // traverse trie and check the node exist or not
                 while (j < lens.size()
-                    && (state=trie_.traverse(line.c_str(), node_pos, key_pos, cumu_lens[j])) != -2) {
+                    && (state=trie_.traverse(uline.c_str(), node_pos, key_pos, cumu_lens[j])) != -2) {
                     j++;
                     if (state < 0)
                         continue;
@@ -311,12 +312,12 @@ class Dictionary
                 if (last_state >=0) {
                     std::string py;
                     if ((uint32_t)last_state < pinyin_.size()) {
-                        py = std::string(line.c_str()+cumu_lens[jj]-lens[jj],line.c_str()+cumu_lens[last_j]);
+                        py = std::string(uline.c_str()+cumu_lens[jj]-lens[jj],uline.c_str()+cumu_lens[last_j]);
                         r.push_back(py);
                     }
                 } else {
                     std::string py;
-                    py = std::string(line.c_str()+cumu_lens[jj]-lens[jj], line.c_str()+cumu_lens[jj]);
+                    py = std::string(uline.c_str()+cumu_lens[jj]-lens[jj], uline.c_str()+cumu_lens[jj]);
                     r.push_back(py);
                 }
                 j = last_j;
