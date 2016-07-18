@@ -4,8 +4,6 @@
 #include <cstdio>
 #include <exception>
 #include <new>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/serialization.hpp>
 
 #define DARTS_VERSION "0.32"
 
@@ -74,12 +72,6 @@ class DoubleArrayUnit {
   id_type offset() const {
     return (unit_ >> 10) << ((unit_ & (1U << 9)) >> 6);
   }
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & unit_;
-    }
 
  private:
   id_type unit_;
@@ -255,25 +247,6 @@ class DoubleArrayImpl {
   // non-zero value.
   int save(const char *file_name, const char *mode = "wb",
       std::size_t offset = 0) const;
-
-    friend class boost::serialization::access;
-    template<class Archive>
-    void save(Archive & ar, const unsigned int version) const
-    {
-        std::vector<unit_type> vec(array_, array_+size());
-        ar & vec;
-    }
-    template<class Archive>
-    void load(Archive & ar, const unsigned int version)
-    {
-        std::vector<unit_type> vec;
-        ar & vec;
-        buf_ = new unit_type[vec.size()];
-        memcpy(buf_, &vec[0], vec.size()*unit_size());
-        size_ = vec.size();
-        array_ = buf_;
-    }
-    BOOST_SERIALIZATION_SPLIT_MEMBER()
 
   // The 1st exactMatchSearch() tests whether the given key exists or not, and
   // if it exists, its value and length are set to `result'. Otherwise, the

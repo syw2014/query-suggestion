@@ -34,6 +34,7 @@ class Normalize {
         }
 
         // TODO:
+        // remove invalid utf8 encoding if it exists.
         static bool RemoveInvalidUTF8(std::string& str) {
             std::string::iterator iter = utf8::find_invalid(str.begin(), str.end());
             if (iter == str.end())
@@ -80,13 +81,12 @@ class Normalize {
         // Check string is utf8 encode
         static bool GetUS2Char(const std::string& str, std::vector<uint32_t>& uChars) {
             uChars.clear();
-           /* if (utf8_check) {
-               if (!ToUTF8(str))
-                   return false;
-            }*/
-            std::string::const_iterator iter = str.begin();
-            while (iter != str.end()) {
-                uint32_t code = utf8::next(iter, str.end());
+            std::string ustr(str);
+            // Avoid throwing exceptions
+            RemoveInvalidUTF8(ustr);
+            std::string::iterator iter = ustr.begin();
+            while (iter != ustr.end()) {
+                uint32_t code = utf8::next(iter, ustr.end());
                 uChars.push_back(code);
             }
             return true;
@@ -100,6 +100,7 @@ class Normalize {
             }
             std::vector<uint16_t> utf16_chars;
             utf8::utf8to16(str.begin(), str.end(), std::back_inserter(utf16_chars));
+            //std::cout << "size: " << utf16_chars.size() << std::endl;
             for (uint32_t i = 0; i < utf16_chars.size(); ++i) {
                 if (!IsChineseChar_(utf16_chars[i])) {
                     return false;
@@ -108,6 +109,41 @@ class Normalize {
             return true;
         }   
 
+       // convert an utf16 encoding(uint16_t) to a utf8 string
+       static bool Utf16ToUTF8Str(const std::vector<uint16_t>& utf16_chars, std::string& utf8str) {
+           utf8str = "";
+           if (utf16_chars.empty()) {
+               return false;
+           }
+           
+           utf8::utf16to8(utf16_chars.begin(), utf16_chars.end(), std::back_inserter(utf8str));
+           return true;
+       }
+
+       // convert an utf16 encoding(uint16_t) to a utf8 string
+       static bool Utf16ToUTF8Str(const uint16_t& utf16_char, std::string& utf8str) {
+           utf8str = "";
+           std::vector<uint16_t> u16chars(1, utf16_char);
+           if (u16chars.empty()) {
+               return false;
+           }
+           
+           utf8::utf16to8(u16chars.begin(), u16chars.end(), std::back_inserter(utf8str));
+           return true;
+       }
+
+       // convert a string to utf16 encoding, utf16_t vector
+       static bool ToUtf16(const std::string& str, std::vector<uint16_t>& utf16_chars) {
+           utf16_chars.clear();
+           std::string ustr(str);
+           // Avoid throwing exceptions
+           RemoveInvalidUTF8(ustr);
+           utf8::utf8to16(ustr.begin(), ustr.end(), std::back_inserter(utf16_chars));
+           
+           return true;
+       }
+
+       //
     private:
         // Determine whether a uint16_t char is a chinese character
         static bool IsChineseChar_(uint16_t ucs2char) {

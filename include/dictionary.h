@@ -18,9 +18,11 @@
 #include "util/darts.h"
 
 #include <boost/lexical_cast.hpp>
+#include <boost/unordered_map.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
+
 
 typedef Darts::DoubleArray Trie;
 typedef uint16_t UCS2Char;
@@ -69,7 +71,7 @@ class Dictionary
                     continue;
                 std::string cnChar = vec[0];
                 std::string pinyin = vec[1].substr(0, vec[1].length()-1); 
-                Noramlize::ToUTF8(cnChar);
+                Normalize::ToUTF8(cnChar);
                 // filter pinyin
                 if (filter_pinyin_.find(pinyin) == filter_pinyin_.end())
                 AddPinYinCnMap(pinyin, cnChar);
@@ -150,16 +152,20 @@ class Dictionary
         void AddPinYinCnMap(const std::string& pinyin, const std::string& cnChar) {
             // Add cnChar
             Cn2PinYinType::iterator cnIter;
-            cnIter = cn2pinyin_.find(cnChar);
-            if (cnIter == cn2pinyin_.end()) { // not found in map
-                std::vector<std::string> pinyin_list(1, pinyin);
-                cn2pinyin_.insert(std::make_pair(cnChar, pinyin_list));
-            } else { // add in the previous list
-                std::vector<std::string>& pinyin_list = cnIter->second;
-                std::vector<std::string>::iterator pyIter;
-                pyIter = std::find(pinyin_list.begin(), pinyin_list.end(), pinyin);
-                if (pyIter == pinyin_list.end()) {
-                    pinyin_list.push_back(pinyin);
+            std::vector<UCS2Char> cnChars;
+            utf8::utf8to16(cnChar.begin(), cnChar.end(), std::back_inserter(cnChars));
+            for (uint32_t i = 0; i < cnChars.size(); ++i) {
+                cnIter = cn2pinyin_.find(cnChars[i]);
+                if (cnIter == cn2pinyin_.end()) { // not found in map
+                    std::vector<std::string> pinyin_list(1, pinyin);
+                    cn2pinyin_.insert(std::make_pair(cnChars[i], pinyin_list));
+                } else { // add in the previous list
+                    std::vector<std::string>& pinyin_list = cnIter->second;
+                    std::vector<std::string>::iterator pyIter;
+                    pyIter = std::find(pinyin_list.begin(), pinyin_list.end(), pinyin);
+                    if (pyIter == pinyin_list.end()) {
+                        pinyin_list.push_back(pinyin);
+                    }
                 }
             }
 
@@ -167,14 +173,14 @@ class Dictionary
             PinYin2CnType::iterator pyIter;
             pyIter = pinyin2cn_.find(pinyin);
             if (pyIter == pinyin2cn_.end()) {
-                std::vector<std::string> cnChar_list(1, cnChar);
-                pinyin2cn_.insert(std::make_pair(pinyin, cnChar));
+                std::vector<UCS2Char> cnChar_list(1, cnChars[0]);
+                pinyin2cn_.insert(std::make_pair(pinyin, cnChars[0]));
             } else {
                 std::vector<std::string>& cnChar_list = pyIter->second;
                 std::vector<std::string>::iterator cnIter;
-                cnIter = std::find(cnChar_list.begin(), cnChar_list.end(), cnChar);
+                cnIter = std::find(cnChar_list.begin(), cnChar_list.end(), cnChars[0]);
                 if (cnIter == cnChar_list.end()) {
-                    cnChar_list.push_back(cnChar);
+                    cnChar_list.push_back(cnChars[0]);
                 }
             }
         }
@@ -191,7 +197,15 @@ class Dictionary
             PinYin2CnType::iterator cnIter;
             cnIter = pinyin2cn_.find(pinyin);
             if (cnIter != pinyin2cn_.end()) {
-                result = cnIter->second;
+                std::vector<UCS2Char> cnChars;
+                cnChars = cnIter->second;
+                uint32_t size = cnChars.size();
+                result.resize(size);
+                for (uint32_t i = 0; i < size; ++i) {
+                    std::string utf8str;
+                    Normalize::Utf16ToUTF8Str(cnChars[i], utf8str);
+                    result[i] = utf8str;
+                }
                 return true;
             }
             return false;
@@ -241,11 +255,15 @@ class Dictionary
 
         // get pinyin list from chinese character map
         bool GetPinYinTerm(const std::string& cnChar, std::vector<std::string>& result) {
-            Cn2PinYinType::iterator cnIter;
-            cnIter = cn2pinyin_.find(cnChar);
-            if (cnIter != cn2pinyin_.end()) {
-                result = cnIter->second;
-                return true;
+            std::vector<UCS2Char> cnChars;
+            utf8::utf8to16(cnChar.begin(), cnChar.end(), std::back_inserter(cnChars));
+            for (uint32_t i = 0; i < cnChars.size(); ++i) {
+                Cn2PinYinType::iterator cnIter;
+                cnIter = cn2pinyin_.find(cnChar);
+                if (cnIter != cn2pinyin_.end()) {
+                    result = cnIter->second;
+                    return true;
+                }
             }
             return false;
         }
