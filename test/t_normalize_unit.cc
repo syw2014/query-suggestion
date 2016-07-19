@@ -70,6 +70,10 @@ BOOST_AUTO_TEST_CASE (ToUtf16) {
     std::vector<uint16_t> utf16_chars;
     Normalize::ToUtf16(str, utf16_chars);
     BOOST_CHECK_MESSAGE( utf16_chars.size() == 4, str << "To utf16 size: " << utf16_chars.size());
+    
+    str = "银行abc";
+    Normalize::ToUtf16(str, utf16_chars);
+    BOOST_CHECK_MESSAGE( utf16_chars.size() == 5, str << "To utf16 size: " << utf16_chars.size());
 }
 
 // 7 Normalize::Utf16ToUTF8Str()
@@ -79,6 +83,11 @@ BOOST_AUTO_TEST_CASE (Utf16ToUTF8Str) {
     std::vector<uint16_t> utf16_chars;
     Normalize::ToUtf16(str, utf16_chars);
     std::string utf8str;
+    Normalize::Utf16ToUTF8Str(utf16_chars, utf8str);
+    BOOST_CHECK_MESSAGE( str == utf8str, str << "After utf16 encoding and decoding: " << utf8str);
+    
+    str = "连衣裙Love";
+    Normalize::ToUtf16(str, utf16_chars);
     Normalize::Utf16ToUTF8Str(utf16_chars, utf8str);
     BOOST_CHECK_MESSAGE( str == utf8str, str << "After utf16 encoding and decoding: " << utf8str);
 }
