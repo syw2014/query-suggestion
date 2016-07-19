@@ -292,29 +292,33 @@ class Dictionary
                 return;
 
             std::vector<std::string> pinyin_term_list;
-            
+            uint32_t offset = 0; 
             // case 1, only chinese and has pinyin
             if (!cnChars.empty() && Normalize::IsChinese(cnChars[0])
                     && (GetPinYinTerm(cnChars[0], pinyin_term_list))) {
                 std::vector<UCS2Char> remain(cnChars.begin()+1,cnChars.end());
-                std::cout << "T1: " << remain.size() << std::endl;
+               // std::cout << "T1: " << remain.size() << std::endl;
                 std::string new_mid(mid_result);
                 for (uint32_t i = 0; i < pinyin_term_list.size(); ++i) {
                     std::string mid = new_mid + pinyin_term_list[i];
-                    std::cout << "T2: " << mid << std::endl;
+                   // std::cout << "T2: " << mid << std::endl;
                     GetPinYin_(remain, mid, result_list);
+                    offset += 1;
                 }
             } else {
                 if (!cnChars.empty() && !Normalize::IsChinese(cnChars[0])) {
+                   // std::cout << "T33-1: " << cnChars.size() << std::endl;
                     std::vector<UCS2Char> remain(cnChars.begin()+1,cnChars.end());
-                    std::string tmp;
-                    Normalize::Utf16ToUTF8Str(remain[0], tmp);
+                   // std::cout << "T33: " << remain.size() << std::endl;
+                    std::string tmp("");
+                    if (cnChars.size() != 0)
+                        Normalize::Utf16ToUTF8Str(cnChars[0], tmp);
                     std::string mid = mid_result + tmp;
-                    std::cout << "T3: " << mid << std::endl;
+                    //std::cout << "T3: " << mid << std::endl;
                     GetPinYin_(remain, mid, result_list);
                 } else {
                     result_list.push_back(mid_result);
-                    std::cout << "T4: " << mid_result << std::endl;
+                    //std::cout << "T4: " << mid_result << std::endl;
                 }
             }
         }

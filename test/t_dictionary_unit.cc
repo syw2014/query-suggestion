@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(CnStr2PinYin) {
     display_convert_py("你在哪儿");
     display_convert_py("中过");
     display_convert_py("哈哈");
-  //  display_convert_py("银行apple");
+    display_convert_py("银行apple");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
