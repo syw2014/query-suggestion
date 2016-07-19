@@ -40,7 +40,6 @@ void display_convert_cn(const std::string& input) {
         std::cout << "Result: " << vec[i] << ",";
     }
     std::cout << std::endl;
-    
 }
 
 // show chinese conversion to pinyin results
@@ -105,7 +104,11 @@ BOOST_AUTO_TEST_CASE(CnStr2PinYin) {
     display_convert_py("你在哪儿");
     display_convert_py("中过");
     display_convert_py("哈哈");
+    
     display_convert_py("银行apple");
+    display_convert_py("女王大人1234");
+    display_convert_py("女王520么么哒");
+    display_convert_py("尹汝杰541帮五买");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
