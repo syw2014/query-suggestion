@@ -103,6 +103,80 @@ BOOST_AUTO_TEST_CASE (U16ToUTF8Str) {
     BOOST_CHECK_MESSAGE( str == utf8str, str << "After utf16 encoding and decoding: " << utf8str);
 }
 
+// 9 Normalize::IsDigit()
+BOOST_AUTO_TEST_CASE (IsDigit) {
+    bool flag = false;
+   flag =  Normalize::IsDigit('2');
+   BOOST_CHECK_MESSAGE( flag == true, "'s' IsDigit result: " << flag);
+
+   flag = Normalize::IsDigit('w');
+   BOOST_CHECK_MESSAGE(flag == false, "'w' IsDigit result: " << flag);
+}
+
+// 10 Normalize::IsAlpha()
+BOOST_AUTO_TEST_CASE (IsAlpha) {
+   bool flag = false;
+   flag =  Normalize::IsAlpha('z');
+   BOOST_CHECK_MESSAGE( flag == true, "'z' IsDigit result: " << flag);
+
+   flag = Normalize::IsAlpha('3');
+   BOOST_CHECK_MESSAGE(flag == false, "'3' IsDigit result: " << flag);
+}
+
+// 11 Normalize::IsConnector()
+BOOST_AUTO_TEST_CASE (IsConnector) {
+   bool flag = false;
+   flag =  Normalize::IsConnector('-');
+   BOOST_CHECK_MESSAGE( flag == true, "'-' IsDigit result: " << flag);
+
+   flag = Normalize::IsConnector('.');
+   BOOST_CHECK_MESSAGE(flag == true, "'.' IsDigit result: " << flag);
+   
+   flag = Normalize::IsConnector('+');
+   BOOST_CHECK_MESSAGE(flag == true, "'+' IsDigit result: " << flag);
+   
+   flag = Normalize::IsConnector('=');
+   BOOST_CHECK_MESSAGE(flag == false, "'=' IsDigit result: " << flag);
+}
+
+// 12 Normalize::IsBreakPunct()
+BOOST_AUTO_TEST_CASE (IsPunct) {
+   bool flag = false;
+   flag =  Normalize::IsBreakPunct('[');
+   BOOST_CHECK_MESSAGE( flag == true, "'[' IsDigit result: " << flag);
+
+   flag = Normalize::IsBreakPunct(']');
+   BOOST_CHECK_MESSAGE(flag == true, "']' IsDigit result: " << flag);
+   
+   flag = Normalize::IsBreakPunct('(');
+   BOOST_CHECK_MESSAGE(flag == true, "'(' IsDigit result: " << flag);
+   
+   flag = Normalize::IsBreakPunct(')');
+   BOOST_CHECK_MESSAGE(flag == true, "')' IsDigit result: " << flag);
+   
+   flag = Normalize::IsBreakPunct('{');
+   BOOST_CHECK_MESSAGE(flag == true, "'{' IsDigit result: " << flag);
+   
+   flag = Normalize::IsBreakPunct('}');
+   BOOST_CHECK_MESSAGE(flag == true, "'}' IsDigit result: " << flag);
+   
+   flag = Normalize::IsBreakPunct('*');
+   BOOST_CHECK_MESSAGE(flag == false, "'*' IsDigit result: " << flag);
+}
+
+// 13 Normalize::IsPunctuation()
+BOOST_AUTO_TEST_CASE (IsPunctuation) {
+   bool flag = false;
+   flag =  Normalize::IsPunctuation('[');
+   BOOST_CHECK_MESSAGE( flag == true, "'[' IsDigit result: " << flag);
+   
+   flag =  Normalize::IsPunctuation(',');
+   BOOST_CHECK_MESSAGE( flag == true, "',' IsDigit result: " << flag);
+   
+   flag =  Normalize::IsPunctuation('?');
+   BOOST_CHECK_MESSAGE( flag == true, "'?' IsDigit result: " << flag);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 

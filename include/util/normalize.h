@@ -15,11 +15,48 @@
 #include <iostream>
 #include <string>
 #include <stdint.h>
+#include <ctype.h>
 #include "utf8.h"
 
 class Normalize {
     public:
         Normalize(){
+        }
+        
+        // IsDigital
+        static bool IsDigit(char c) {
+            if (c >= '0' && c <= '9')
+                return true;
+            return false;
+        }
+
+        // IsAlpha
+        static bool IsAlpha(char c) {
+            if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+                return true;
+            return false;
+        }
+
+        // IsConnector
+        static bool IsConnector(char c) {
+            if ( c == '.' || c == '-' || c == '+')
+                return true;
+            return false;
+        }
+
+        // IsBreakPunctuation
+        static bool IsBreakPunct(char c) {
+            if (!IsPunctuation(c))
+                return false;
+            if (c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}')
+                return true;
+
+            return false;
+        }
+
+        // IsPunctuation
+        static bool IsPunctuation(char c) {
+            return ispunct(c);
         }
 
         // Convert a string to utf8 encoding, replace any invalid codes by unicode
@@ -89,6 +126,12 @@ class Normalize {
                 uint32_t code = utf8::next(iter, ustr.end());
                 uChars.push_back(code);
             }
+            return true;
+        }
+
+        template<typename T>
+        static bool RemoveElement(std::vector<T>& lVec, uint32_t pos
+                        ,std::vector<T>& rVec) {
             return true;
         }
 

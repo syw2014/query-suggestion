@@ -76,6 +76,10 @@ BOOST_AUTO_TEST_CASE(PinYinSegment) {
    display_tokens("woyaochitang"); 
    display_tokens("woyaochitan"); 
    display_tokens("congxin"); 
+   
+   display_tokens("yinhangjiaapple"); 
+   display_tokens("gongsicompany"); 
+   display_tokens("shangshi123"); 
 
 }
 
@@ -98,7 +102,7 @@ BOOST_AUTO_TEST_CASE(CnStr2PinYin) {
     display_convert_py("你在哪儿");
     display_convert_py("中过");
     display_convert_py("哈哈");
-    //display_convert_py("银行bank");
+  //  display_convert_py("银行apple");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

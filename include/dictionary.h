@@ -81,6 +81,55 @@ class Dictionary
             std::cout << "Resouces loaded pinyin size: " << pinyin_.size() << std::endl; 
         }
 
+        // Merge 
+        void Merge_( std::vector<std::string>& tks) {
+            std::vector<uint32_t> flags(tks.size(), 0);
+            for (uint32_t i = 0; i < tks.size(); ++i) {
+                uint32_t j = 0;
+                for (; j < tks[i].length(); ++j) {
+                    if (Normalize::IsDigit(tks[i][j])
+                    && Normalize::IsAlpha(tks[i][j])
+                    && tks[i].length() < 2)
+                        break;
+                }
+                if (j < tks[i].length()) flags[i] = 1;
+            }
+
+            // TODO:
+            // ex: a, b, cd, e
+            // a, b , e needs to be merged
+            // we make a conclsion that abcde is one word.
+            for (uint32_t i = 0; i < flags.size(); ++i) {
+                if ((i>=1) && (i+1) < flags.size()) {
+                    if (flags[i-1] == 1 && flags[i+1] == 1)
+                        flags[i] = 1;
+                }
+            }
+
+            // merge
+            for (uint32_t i = 0; i < tks.size(); ++i) {
+                if (flags[i]) {
+                    uint32_t t = i;
+                    ++i;
+                    while (i < tks.size(); && flags[i]) {
+                        tks[t] += tks[i];
+                        tks.erase(tks.begin()+i);
+                        flags.erase(flags.begin()+i);
+                    }
+                }
+            }
+        }
+
+        // Clean
+        void Clean_(std::vector<std::string>& tks) {
+            for (uint32_t i = 0; i < tks.size(); ++i) {
+                boost::algorithm::trim(tks[i]);
+                if (tks[i].length() > 0 
+                   && Normalize::IsPunctuation(tks[i][0])) {
+                    tks[i].clear();
+                }
+            }
+        }
     public:
         Dictionary(const std::string& dir) {
             cn2pinyin_.clear();
@@ -236,11 +285,11 @@ class Dictionary
             if (!cnChars.empty() && Normalize::IsChinese(cnChars[0])
                     && (GetPinYinTerm(cnChars[0], pinyin_term_list))) {
                 std::vector<UCS2Char> remain(cnChars.begin()+1,cnChars.end());
-                //std::cout << "T1: " << remain.size() << std::endl;
+                std::cout << "T1: " << remain.size() << std::endl;
                 std::string new_mid(mid_result);
                 for (uint32_t i = 0; i < pinyin_term_list.size(); ++i) {
                     std::string mid = new_mid + pinyin_term_list[i];
-                    //std::cout << "T2: " << mid << std::endl;
+                    std::cout << "T2: " << mid << std::endl;
                     GetPinYin_(remain, mid, result_list);
                 }
             } else {
@@ -249,11 +298,11 @@ class Dictionary
                     std::string tmp;
                     Normalize::Utf16ToUTF8Str(remain[0], tmp);
                     std::string mid = mid_result + tmp;
-                    //std::cout << "T3: " << mid << std::endl;
+                    std::cout << "T3: " << mid << std::endl;
                     GetPinYin_(remain, mid, result_list);
                 } else {
                     result_list.push_back(mid_result);
-                    //std::cout << "T4: " << mid_result << std::endl;
+                    std::cout << "T4: " << mid_result << std::endl;
                 }
             }
         }
@@ -337,6 +386,10 @@ class Dictionary
                 j = last_j;
                 key_pos = cumu_lens[j];
             }
+        }
+
+        // Merge 
+        void Merge( std::vector<std::string>& tokens) {
         }
 };
 
