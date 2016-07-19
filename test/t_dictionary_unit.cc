@@ -80,6 +80,9 @@ BOOST_AUTO_TEST_CASE(PinYinSegment) {
    display_tokens("yinhangjiaapple"); 
    display_tokens("gongsicompany"); 
    display_tokens("shangshi123"); 
+   
+   display_tokens("qingguangxu15nian"); 
+   display_tokens("sanxingSUMSONG"); 
 
 }
 

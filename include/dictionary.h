@@ -88,15 +88,15 @@ class Dictionary
                 uint32_t j = 0;
                 for (; j < tks[i].length(); ++j) {
                     if (Normalize::IsDigit(tks[i][j])
-                    && Normalize::IsAlpha(tks[i][j])
-                    && tks[i].length() < 2)
+                    || (Normalize::IsAlpha(tks[i][j])
+                    && tks[i].length() < 2))
                         break;
                 }
                 if (j < tks[i].length()) flags[i] = 1;
             }
 
-            // TODO:
-            // ex: a, b, cd, e
+            // TODO: Rule1
+            // eg: a, b, cd, e
             // a, b , e needs to be merged
             // we make a conclsion that abcde is one word.
             for (uint32_t i = 0; i < flags.size(); ++i) {
@@ -105,14 +105,24 @@ class Dictionary
                         flags[i] = 1;
                 }
             }
+            // TODO: Rule2
+            // eg: a,p,p,le
+            // we know it's english word, if the penult token needs to be merged
+            // we also set the merge flag of the last token to true.
+            uint32_t k = flags.size() - 1;
+            if (k >= 1) {
+              if (flags[k-1] == 1)
+                flags[k] = 1;
+              }
 
             // merge
             for (uint32_t i = 0; i < tks.size(); ++i) {
                 if (flags[i]) {
                     uint32_t t = i;
                     ++i;
-                    while (i < tks.size(); && flags[i]) {
+                    while (i < tks.size() && flags[i]) {
                         tks[t] += tks[i];
+                       // std::cout << "TTT:: " << tks[t] << std::endl;
                         tks.erase(tks.begin()+i);
                         flags.erase(flags.begin()+i);
                     }
@@ -237,6 +247,8 @@ class Dictionary
             if (pinyin.empty())
                 return;
             Fmm(pinyin, result);
+            Merge_(result);
+            Clean_(result);
         }
 
         // get chinese character based on pinyin string
@@ -388,9 +400,6 @@ class Dictionary
             }
         }
 
-        // Merge 
-        void Merge( std::vector<std::string>& tokens) {
-        }
 };
 
 #endif // dictionary.h
