@@ -9,6 +9,7 @@
 #define SGEMENTWRAPPER_H
 
 #include <iostream>
+#include <memory>
 #include "segment/segment.h"
 //#include "PropSharedLock.h"
 
@@ -40,21 +41,16 @@ class SegmentWrapper
     private:
         std::string dictDir_;
         boost::unordered_set<std::string> stopWords_;
-        knlp::HorseTokenize* tok_;
-       // boost::unordered_map<int, std::vector<std::string> > itemID_tokens_;
-       // std::vector<int> itemIDs_;
+        std::auto_ptr<knlp::HorseTokenize> tok_;
 
     public:
         SegmentWrapper(const std::string& dictDir)
-          :dictDir_(dictDir),tok_(NULL){
-              tok_ = new knlp::HorseTokenize(dictDir);
+          :dictDir_(dictDir){
+              tok_.reset(new knlp::HorseTokenize(dictDir));
               loadSpecialWords((dictDir_+"/stop_words.utf8"));
           }
 
         ~SegmentWrapper(){
-            if(tok_ != NULL)
-                delete tok_;
-            tok_ = NULL;
         }
 
         bool isDigital(uint16_t uchar){
@@ -192,8 +188,8 @@ class SegmentWrapper
             for(uint32_t j = 0; j < subtmp.size(); ++j)
                 subtoken[j] = subtmp[j].first;
         }
+        
         // dedup: it's true means you want to remove the deduplicate words afterm segmentation
-        //
         void subSegment(const std::string& line, std::vector<std::string>& token, bool dedup=true){
             token.clear();
             std::vector<std::pair<std::string, float> > tmp, subtmp, subtoken;
