@@ -16,7 +16,7 @@
 #include "normalize.h"
 #include "darts.h"
 #include "line_reader.h"
-#include "utf8.h"
+#include "util/utf8.h"
 
 namespace knlp
 {

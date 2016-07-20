@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE DictionaryTest
 #include <iostream>
 #include "unit_test.h"
-#include "dictionary.h"
+#include "dictionary.hpp"
 
 // name of the test suite is DictionaryTest
 BOOST_AUTO_TEST_SUITE (DictionaryTest)

@@ -1,5 +1,5 @@
 /*************************************************************************
- @ File Name: dictionary.h
+ @ File Name: dictionary.hpp
  @ Method: 
  @ Author: Jerry Shi
  @ Mail: jerryshi0110@gmail.com
@@ -8,8 +8,8 @@
 // Trie struct for quick find, pinyin tokenizer, pinyin -> chinese character
 // chinese -> pinyin, fuzzy pinyin map, pinyin filter map.
 
-#ifndef DICTIONARY_H
-#define DICTIONARY_H
+#ifndef DICTIONARY_HPP
+#define DICTIONARY_HPP
 
 #include <iostream>
 #include <fstream>
@@ -130,7 +130,7 @@ class Dictionary
             }
         }
 
-        // Clean
+        // Clean, remove punctuation string
         void Clean_(std::vector<std::string>& tks) {
             for (uint32_t i = 0; i < tks.size(); ++i) {
                 boost::algorithm::trim(tks[i]);
@@ -406,4 +406,4 @@ class Dictionary
 
 };
 
-#endif // dictionary.h
+#endif // dictionary.hpp
