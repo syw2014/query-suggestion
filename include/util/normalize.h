@@ -141,11 +141,11 @@ class Normalize {
                // std::cout << "string is a invalid utf8 encoding!\n";
                 return false;
             }
-            std::vector<uint16_t> utf16_chars;
-            utf8::utf8to16(str.begin(), str.end(), std::back_inserter(utf16_chars));
-            //std::cout << "size: " << utf16_chars.size() << std::endl;
-            for (uint32_t i = 0; i < utf16_chars.size(); ++i) {
-                if (!IsChineseChar_(utf16_chars[i])) {
+            std::vector<uint16_t> unicodes;
+            utf8::utf8to16(str.begin(), str.end(), std::back_inserter(unicodes));
+            //std::cout << "size: " << unicodes.size() << std::endl;
+            for (uint32_t i = 0; i < unicodes.size(); ++i) {
+                if (!IsChineseChar_(unicodes[i])) {
                     return false;
                 }
             }
@@ -158,35 +158,35 @@ class Normalize {
        }
 
        // convert an utf16 encoding(uint16_t) to a utf8 string
-       static bool Utf16ToUTF8Str(const std::vector<uint16_t>& utf16_chars, std::string& utf8str) {
+       static bool UnicodeToUTF8Str(const std::vector<uint16_t>& unicodes, std::string& utf8str) {
            utf8str = "";
-           if (utf16_chars.empty()) {
+           if (unicodes.empty()) {
                return false;
            }
            
-           utf8::utf16to8(utf16_chars.begin(), utf16_chars.end(), std::back_inserter(utf8str));
+           utf8::utf16to8(unicodes.begin(), unicodes.end(), std::back_inserter(utf8str));
            return true;
        }
 
        // convert an utf16 encoding(uint16_t) to a utf8 string
-       static bool Utf16ToUTF8Str(const uint16_t& utf16_char, std::string& utf8str) {
+       static bool UnicodeToUTF8Str(const uint16_t& unicode, std::string& utf8str) {
            utf8str = "";
-           std::vector<uint16_t> u16chars(1, utf16_char);
-           if (u16chars.empty()) {
+           std::vector<uint16_t> unicodes(1, unicode);
+           if (unicodes.empty()) {
                return false;
            }
            
-           utf8::utf16to8(u16chars.begin(), u16chars.end(), std::back_inserter(utf8str));
+           utf8::utf16to8(unicodes.begin(), unicodes.end(), std::back_inserter(utf8str));
            return true;
        }
 
-       // convert a string to utf16 encoding, utf16_t vector
-       static bool ToUtf16(const std::string& str, std::vector<uint16_t>& utf16_chars) {
-           utf16_chars.clear();
+       // convert a string to unicode encoding, unicode vector
+       static bool ToUnicode(const std::string& str, std::vector<uint16_t>& unicodes) {
+           unicodes.clear();
            std::string ustr(str);
            // Avoid throwing exceptions
            RemoveInvalidUTF8(ustr);
-           utf8::utf8to16(ustr.begin(), ustr.end(), std::back_inserter(utf16_chars));
+           utf8::utf8to16(ustr.begin(), ustr.end(), std::back_inserter(unicodes));
            
            return true;
        }

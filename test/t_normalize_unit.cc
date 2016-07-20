@@ -63,43 +63,43 @@ BOOST_AUTO_TEST_CASE (IsChinese) {
     BOOST_CHECK_MESSAGE( flag == true, str << " IsChinese result: " << flag);
 }
 
-// 6 Normalize::ToUtf16()
+// 6 Normalize::ToUnicode()
 // Get utf16 encoding arrary of a string
-BOOST_AUTO_TEST_CASE (ToUtf16) {
+BOOST_AUTO_TEST_CASE (ToUnicode) {
     std::string str("大智若愚");
-    std::vector<uint16_t> utf16_chars;
-    Normalize::ToUtf16(str, utf16_chars);
-    BOOST_CHECK_MESSAGE( utf16_chars.size() == 4, str << "To utf16 size: " << utf16_chars.size());
+    std::vector<uint16_t> unicodes;
+    Normalize::ToUnicode(str, unicodes);
+    BOOST_CHECK_MESSAGE( unicodes.size() == 4, str << "To utf16 size: " << unicodes.size());
     
     str = "银行abc";
-    Normalize::ToUtf16(str, utf16_chars);
-    BOOST_CHECK_MESSAGE( utf16_chars.size() == 5, str << "To utf16 size: " << utf16_chars.size());
+    Normalize::ToUnicode(str, unicodes);
+    BOOST_CHECK_MESSAGE( unicodes.size() == 5, str << "To utf16 size: " << unicodes.size());
 }
 
-// 7 Normalize::Utf16ToUTF8Str()
+// 7 Normalize::UnicodeToUTF8Str()
 // Convert a chinese character with utf16 encoding(uint16_t) to a utf8 string
-BOOST_AUTO_TEST_CASE (Utf16ToUTF8Str) {
+BOOST_AUTO_TEST_CASE (UnicodesToUTF8Str) {
     std::string str("中华人民共和国");
-    std::vector<uint16_t> utf16_chars;
-    Normalize::ToUtf16(str, utf16_chars);
+    std::vector<uint16_t> unicodes;
+    Normalize::ToUnicode(str, unicodes);
     std::string utf8str;
-    Normalize::Utf16ToUTF8Str(utf16_chars, utf8str);
+    Normalize::UnicodeToUTF8Str(unicodes, utf8str);
     BOOST_CHECK_MESSAGE( str == utf8str, str << "After utf16 encoding and decoding: " << utf8str);
     
     str = "连衣裙Love";
-    Normalize::ToUtf16(str, utf16_chars);
-    Normalize::Utf16ToUTF8Str(utf16_chars, utf8str);
+    Normalize::ToUnicode(str, unicodes);
+    Normalize::UnicodeToUTF8Str(unicodes, utf8str);
     BOOST_CHECK_MESSAGE( str == utf8str, str << "After utf16 encoding and decoding: " << utf8str);
 }
 
-// 8 Normalize::Utf16ToUTF8Str()
+// 8 Normalize::UnicodeToUTF8Str()
 // Convert a chinese character with utf16 encoding(uint16_t) to a utf8 string
-BOOST_AUTO_TEST_CASE (U16ToUTF8Str) {
+BOOST_AUTO_TEST_CASE (UnicodeToUTF8Str) {
     std::string str("爱");
-    std::vector<uint16_t> utf16_chars;
-    Normalize::ToUtf16(str, utf16_chars);
+    std::vector<uint16_t> unicodes;
+    Normalize::ToUnicode(str, unicodes);
     std::string utf8str;
-    Normalize::Utf16ToUTF8Str(utf16_chars[0], utf8str);
+    Normalize::UnicodeToUTF8Str(unicodes[0], utf8str);
     BOOST_CHECK_MESSAGE( str == utf8str, str << "After utf16 encoding and decoding: " << utf8str);
 }
 

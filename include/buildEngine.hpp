@@ -65,8 +65,22 @@ class BuildEngine {
 
     public:
         BuildEngine() {
+            // resource directory check
+            if (!boost::filesystem::exists(res_dir_)) {
+                std::cout << "resouce directory: " << res_dir_ << "is not exist!" << std::endl;
+                std::cout << "Tips: resource directory may like: \"../resource/\"" << std::endl;
+                return;
+            }
+
+            // construct tokenizer
+            segWrapper_.reset(new SegmentWrapper(res_dir_+"dict"));
+            pySegDict_.reset(new Dictionary(res_dir_+"cn"));
         }
+
         ~BuildEngine() {
+            terms_.clear();
+            tf_.clear();
+            key_termIds_.clear();
         }
 
         // get data building results

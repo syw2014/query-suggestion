@@ -262,7 +262,7 @@ class Dictionary
                 result.resize(size);
                 for (uint32_t i = 0; i < size; ++i) {
                     std::string utf8str;
-                    Normalize::Utf16ToUTF8Str(cnChars[i], utf8str);
+                    Normalize::UnicodeToUTF8Str(cnChars[i], utf8str);
                     //std::cout << "T: " << utf8str << std::endl;
                     result[i] = utf8str;
                 }
@@ -278,7 +278,7 @@ class Dictionary
                 return false;
             }
             std::vector<UCS2Char> cnChars;
-            Normalize::ToUtf16(cnChar, cnChars);
+            Normalize::ToUnicode(cnChar, cnChars);
 
             GetPinYin_(cnChars, "", result);
             return true;
@@ -312,7 +312,7 @@ class Dictionary
                    // std::cout << "T33: " << remain.size() << std::endl;
                     std::string tmp("");
                     if (cnChars.size() != 0)
-                        Normalize::Utf16ToUTF8Str(cnChars[0], tmp);
+                        Normalize::UnicodeToUTF8Str(cnChars[0], tmp);
                     std::string mid = mid_result + tmp;
                     //std::cout << "T3: " << mid << std::endl;
                     GetPinYin_(remain, mid, result_list);
