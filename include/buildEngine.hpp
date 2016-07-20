@@ -100,10 +100,34 @@ class BuildEngine {
         bool Flush(const std::string& termFile, const std::string& keyFile) {
         }
 
-        // parse string to chars and words
+        // parse string into chars and words
+        // @chars: single unicode 
+        // @words: string segmentation results
         bool Parse(const std::string& str
                     ,std::vector<std::string>& chars
                     ,std::vector<std::string>& words) {
+            if (str.empty())
+                return false;
+
+            // extract chars
+            chars.clear();
+            std::vector<UnicodeType> unicodes;
+            if (Normalize::ToUnicode(str, unicodes)) {
+                //if(unicodes.empty())
+                //    return false;
+                chars.resize(unicode.size());
+                for (uint32_t i = 0; i < unicodes.size(); ++i) {
+                    std::string unicode;
+                    Normalzie::UnicodeToUTF8Str(unicodes[i], unicode);
+                    chars[i] = unicode;
+                }
+            }
+
+            // extract words
+            words.clear();
+            segWrapper_->segment(str, words, false);
+
+            return true;
         }
 
         // generate prefix
@@ -114,6 +138,9 @@ class BuildEngine {
         }
 
         // generate key by prefix
+        // @chars: unicodes for input string
+        // @keys: index key generated based on every unicode
+        // @num: the number of unicodes chosen to be stored in keys 
         bool GenerateByPrefix(const std::vector<std::string>& chars
                               ,std::vector<std::string>& keys
                               ,const uint32_t len ) {

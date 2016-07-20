@@ -18,6 +18,8 @@
 #include <ctype.h>
 #include "utf8.h"
 
+typedef uint16_t UnicodeType;
+
 class Normalize {
     public:
         Normalize(){
@@ -120,7 +122,8 @@ class Normalize {
             uChars.clear();
             std::string ustr(str);
             // Avoid throwing exceptions
-            RemoveInvalidUTF8(ustr);
+            if (!RemoveInvalidUTF8(ustr))
+                return false;
             std::string::iterator iter = ustr.begin();
             while (iter != ustr.end()) {
                 uint32_t code = utf8::next(iter, ustr.end());
@@ -141,7 +144,7 @@ class Normalize {
                // std::cout << "string is a invalid utf8 encoding!\n";
                 return false;
             }
-            std::vector<uint16_t> unicodes;
+            std::vector<UnicodeType> unicodes;
             utf8::utf8to16(str.begin(), str.end(), std::back_inserter(unicodes));
             //std::cout << "size: " << unicodes.size() << std::endl;
             for (uint32_t i = 0; i < unicodes.size(); ++i) {
@@ -153,12 +156,12 @@ class Normalize {
         }   
 
        // Reload
-       static bool IsChinese(const uint16_t& UCS2Char) {
+       static bool IsChinese(const UnicodeType& UCS2Char) {
            return IsChineseChar_(UCS2Char);
        }
 
-       // convert an utf16 encoding(uint16_t) to a utf8 string
-       static bool UnicodeToUTF8Str(const std::vector<uint16_t>& unicodes, std::string& utf8str) {
+       // convert an utf16 encoding(UnicodeType) to a utf8 string
+       static bool UnicodeToUTF8Str(const std::vector<UnicodeType>& unicodes, std::string& utf8str) {
            utf8str = "";
            if (unicodes.empty()) {
                return false;
@@ -168,10 +171,10 @@ class Normalize {
            return true;
        }
 
-       // convert an utf16 encoding(uint16_t) to a utf8 string
-       static bool UnicodeToUTF8Str(const uint16_t& unicode, std::string& utf8str) {
+       // convert an utf16 encoding(UnicodeType) to a utf8 string
+       static bool UnicodeToUTF8Str(const UnicodeType& unicode, std::string& utf8str) {
            utf8str = "";
-           std::vector<uint16_t> unicodes(1, unicode);
+           std::vector<UnicodeType> unicodes(1, unicode);
            if (unicodes.empty()) {
                return false;
            }
@@ -181,11 +184,12 @@ class Normalize {
        }
 
        // convert a string to unicode encoding, unicode vector
-       static bool ToUnicode(const std::string& str, std::vector<uint16_t>& unicodes) {
+       static bool ToUnicode(const std::string& str, std::vector<UnicodeType>& unicodes) {
            unicodes.clear();
            std::string ustr(str);
            // Avoid throwing exceptions
-           RemoveInvalidUTF8(ustr);
+           if (!RemoveInvalidUTF8(ustr))
+               return false;
            utf8::utf8to16(ustr.begin(), ustr.end(), std::back_inserter(unicodes));
            
            return true;
@@ -193,8 +197,8 @@ class Normalize {
 
        //
     private:
-        // Determine whether a uint16_t char is a chinese character
-        static bool IsChineseChar_(uint16_t ucs2char) {
+        // Determine whether a UnicodeType char is a chinese character
+        static bool IsChineseChar_(UnicodeType ucs2char) {
             if(((ucs2char >= 0x2E80 && ucs2char <= 0x2EF3) // CJK Radicals
                   ||(ucs2char >= 0x2F00 && ucs2char <= 0x2FD5) // Kangxi Radicals Range: 0x2F00 - 0X2FDF
                   ||(ucs2char >= 0x3400 && ucs2char <= 0x4DB5) // CJK Unified Ideographs Extension A
