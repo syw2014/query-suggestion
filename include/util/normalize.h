@@ -188,8 +188,7 @@ class Normalize {
            unicodes.clear();
            std::string ustr(str);
            // Avoid throwing exceptions
-           if (!RemoveInvalidUTF8(ustr))
-               return false;
+           RemoveInvalidUTF8(ustr);
            utf8::utf8to16(ustr.begin(), ustr.end(), std::back_inserter(unicodes));
            
            return true;

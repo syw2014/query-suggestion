@@ -22,7 +22,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
-
+#include <boost/shared_ptr.hpp>
 
 typedef Darts::DoubleArray Trie;
 typedef uint16_t UCS2Char;

@@ -7,7 +7,7 @@
 #include <string>
 
 
-class Normalize
+class KNormalize
 {
     //static Trad2Simp trd2smp_;
 public:

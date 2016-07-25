@@ -13,6 +13,7 @@
 
 #include <set>
 #include <memory>
+#include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -45,7 +46,7 @@ class BuildEngine {
 
         static const uint32_t topK_ = 15;     // default number of candidate words
 
-        static std:string res_dir_;           // resource directory, pinyin and token resource
+        static std::string res_dir_;           // resource directory, pinyin and token resource
 
         // main data structure
         std::auto_ptr<SegmentWrapper> segWrapper_;  // chinese string tokenizer
@@ -118,8 +119,8 @@ class BuildEngine {
 
             // load shengmu from files.
             // b,p,m,f,d,t,n,l,g,k,k,j,q,x,zh,ch,sh,r,z,c,s,y,w
-            std::ifstream ifs((res_dir_+"cn/ShengMu.txt"));
-            if (ifs) {
+            std::ifstream ifs((res_dir_+"cn/ShengMu.txt").c_str());
+            if (!ifs) {
                 std::cout << "Open file " << (res_dir_+"cn/ShengMu.txt") << "failed!" << std::endl;
                 return;
             }
@@ -140,13 +141,13 @@ class BuildEngine {
         }
 
         // get data building results
-        bool GetDataModule(std::vector<std::string>& terms
+        void GetDataModule(std::vector<std::string>& terms
                            ,KeyTermIDsType& key_termids) {
             terms.clear();
-            key_termids.clear():
+            key_termids.clear();
 
             terms.swap(terms_);
-            key_termids.swap(key_termids_);
+            key_termids.swap(key_termIds_);
         }
 
         // build data module from file
@@ -203,12 +204,12 @@ class BuildEngine {
                 terms_[idx] = it->first;
                 tf_[idx] = it->second;
             }
-            t_req.clear();
+            t_freq.clear();
 
             // step3, generate keys
             KeyInfoType key_info;
             for (uint32_t idx = 0; idx < terms_.size(); ++idx) {
-                Generate(terms_[i], idx, key_info);
+                Generate(terms_[idx], idx, key_info);
             }
 
             // step4 , compuate score for every key
@@ -217,13 +218,13 @@ class BuildEngine {
                 std::vector<std::pair<uint32_t, double> >& info = iter->second;
                 // score = tf * weight;
                 for (uint32_t i = 0; i < info.size(); ++i) {
-                    if (info[i].first > term_freq_.size()) {
+                    if (info[i].first > tf_.size()) {
                         info[i].second = 1.1;
                         continue;
                     }
-                    info[i].second = term_freq_[info[i].first] * info[i].second;
+                    info[i].second = tf_[info[i].first] * info[i].second;
                 }
-                sort(info.begin(), info.end(), sort<uint32_t, double>::sortDescendBySecond);
+                sort(info.begin(), info.end(), SORT<uint32_t, double>::sortDescendBySecond);
                 // result deduplication
                 std::vector<uint32_t> termsid;
                 std::set<uint32_t> uniq_ids;
@@ -232,16 +233,17 @@ class BuildEngine {
                         termsid.push_back(info[i].first);
                     }
                 }
-                key_termids_[it->first].swap(termsid);
+                key_termIds_[it->first].swap(termsid);
                 uniq_ids.clear();
             }
 
-            std::cout << "key_termids size: " << key_termids_.size() << std::endl;
+            std::cout << "key_termids size: " << key_termIds_.size() << std::endl;
             std::cout << "Building completed!\n";
         }
 
         // build from vector
         bool Build(const std::vector<std::string>& termVec) {
+            return true;
         }
 
         // store results to files
@@ -266,19 +268,19 @@ class BuildEngine {
 
             // store keys
             KeyTermIDsType::iterator iter;
-            for (iter = key_itermids_.begin(); iter != key_itermids_.end(); ++iter) {
+            for (iter = key_termIds_.begin(); iter != key_termIds_.end(); ++iter) {
                 std::vector<uint32_t>& ids = iter->second;
                 // candidate is itself
                 // do not suggestion itself
-                if (ids.size() == 1 && ids[0] < terms_.size() && terms_[ids[0]] == it->first)
+                if (ids.size() == 1 && ids[0] < terms_.size() && terms_[ids[0]] == iter->first)
                     continue;
-                ofs_key << it->first; // key
+                ofs_key << iter->first; // key
                 for (uint32_t i = 0; i < ids.size(); ++i) {
                     // make sure id is in the range of term vector
                     if (ids[i] > terms_.size())
                         continue;
                     // do not suggest itself
-                    if (it->first == terms_[ids[i]])
+                    if (iter->first == terms_[ids[i]])
                         continue;
                     ofs_key << "\t" << terms_[ids[i]];
                 }
@@ -304,13 +306,13 @@ class BuildEngine {
             if (Normalize::ToUnicode(str, unicodes)) {
                 //if(unicodes.empty())
                 //    return false;
-                chars.resize(unicode.size());
+                chars.resize(unicodes.size());
                 for (uint32_t i = 0; i < unicodes.size(); ++i) {
                     std::string unicode;
-                    Normalzie::UnicodeToUTF8Str(unicodes[i], unicode);
+                    Normalize::UnicodeToUTF8Str(unicodes[i], unicode);
                     chars[i] = unicode;
                 }
-            }
+            } 
 
             // extract words
             words.clear();
@@ -345,10 +347,10 @@ class BuildEngine {
             GenerateByPinYinPrefix(str, keys, num);
             StoreInKeyMap(keys, key_info, termid, pinyin_prefix_w_);
 
-            GenerateByShengMuPrefix(term, keys, num);
+            GenerateByShengMuPrefix(str, keys, num);
             StoreInKeyMap(keys, key_info, termid, shengmu_w_);
 
-            GenereateByWordInfix(words, keys, num);
+            GenerateByWordInfix(words, keys, num);
             StoreInKeyMap(keys, key_info, termid, word_infix_w_);
 
             GenerateByWordSuffix(words, keys, num);
@@ -387,7 +389,7 @@ class BuildEngine {
             if (size < 3)
                 return false;
 
-            for (uint32_t i = 0; i < size - 1; ++i )
+            for (uint32_t i = 0; i < size - 1 && i < num; ++i )
                 keys.push_back(words[i]);
 
             return true;
@@ -412,10 +414,10 @@ class BuildEngine {
         // generate key by pinyin prefix
         // @str: input string, can be any combination
         // @keys: index key generated based on pinyin prefix which generated by Dictionary::GetPinYin()
-        // @len: the length of prefix 
+        // @num: the length of prefix 
         bool GenerateByPinYinPrefix(const std::string& str
                                     ,std::vector<std::string>& keys
-                                    ,const uint32_t len) {
+                                    ,const uint32_t num) {
             keys.clear();
             if (str.empty())
                 return false;
@@ -461,7 +463,7 @@ class BuildEngine {
                 return false;
             for (uint32_t i = 0; i < unicodes.size(); ++i) {
                 // get one letter
-                UCS2Char uchar = unciodes[i];
+                UCS2Char uchar = unicodes[i];
                 std::string ustr;
                 Normalize::UnicodeToUTF8Str(uchar, ustr);
                 // type inditification
@@ -479,7 +481,7 @@ class BuildEngine {
                         shm_list.back().swap(shm);
                     } else {
                         // is alphabet / digital
-                        shm_list.push_back(ustr);
+                        shm_list.push_back(std::vector<std::string>(1,ustr));
                     }
                 }
             }

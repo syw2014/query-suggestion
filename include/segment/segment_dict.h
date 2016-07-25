@@ -39,7 +39,7 @@ class KDictionary
 
     void normalize_(std::string& str)const
     {
-        Normalize::normalize(str);
+        KNormalize::normalize(str);
     }
 
     void load_(const std::string& nm)
