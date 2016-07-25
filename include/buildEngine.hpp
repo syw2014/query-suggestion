@@ -115,6 +115,22 @@ class BuildEngine {
             // construct tokenizer
             segWrapper_.reset(new SegmentWrapper(res_dir_+"dict"));
             pySegDict_.reset(new Dictionary(res_dir_+"cn"));
+
+            // load shengmu from files.
+            // b,p,m,f,d,t,n,l,g,k,k,j,q,x,zh,ch,sh,r,z,c,s,y,w
+            std::ifstream ifs((res_dir_+"cn/ShengMu.txt"));
+            if (ifs) {
+                std::cout << "Open file " << (res_dir_+"cn/ShengMu.txt") << "failed!" << std::endl;
+                return;
+            }
+            std::string line;
+            while (getline(ifs, line)) {
+                boost::algorithm::trim(line);
+                if (line.empty())
+                    continue;
+                shm_.insert(line);
+            }
+            ifs.close();
         }
 
         ~BuildEngine() {
@@ -126,6 +142,11 @@ class BuildEngine {
         // get data building results
         bool GetDataModule(std::vector<std::string>& terms
                            ,KeyTermIDsType& key_termids) {
+            terms.clear();
+            key_termids.clear():
+
+            terms.swap(terms_);
+            key_termids.swap(key_termids_);
         }
 
         // build data module from file
