@@ -475,6 +475,7 @@ class BuildEngine {
                     if (Normalize::IsChinese(uchar)) {
                         std::vector<std::string> shm;
                         std::vector<std::string> pinyin;
+                       // std::cout < "T -> pinyin: " << ustr << std::endl;
                         pySegDict_->GetPinYin(ustr, pinyin); // extract pinyin
                         GetShengMuByPinYin_(pinyin, shm);    // extract sheng mu
                         shm_list.push_back(std::vector<std::string>());
@@ -485,6 +486,40 @@ class BuildEngine {
                     }
                 }
             }
+            // get all shengmu combination includes polyphone
+            if (shm_list.size() < 1)
+                return false;
+            std::vector<std::string> shengmus = shm_list[0]; // pinyin of the first word
+            for (uint32_t idx = 1; idx < shm_list.size(); ++idx) {
+                std::vector<std::string>& current_shm = shm_list[idx];
+                if (current_shm.size() == 1) { // no polyphone
+                    for (uint32_t id = 0; id < shengmus.size(); ++id ) {
+                        shengmus[id] += current_shm[0];
+                    }
+                } else { // with polyphone
+                    std::vector<std::string> pre_shm;
+                    pre_shm.swap(shengmus);
+                    // combine the previous and current
+                    for (uint32_t pre_idx = 0; pre_idx < pre_shm.size(); ++pre_idx) {
+                        for (uint32_t cur_idx = 0; cur_idx < current_shm.size(); ++cur_idx) {
+                            shengmus.push_back( pre_shm[pre_idx] + current_shm[cur_idx] );
+                        }
+                    }
+                }
+            }
+
+            // get all shengmu prefix remove the duplication
+            std::set<std::string> prefixes;
+            for (uint32_t idx = 0; idx < shengmus.size(); ++idx) {
+                std::string prefix;
+                for (uint32_t py_id = 0; py_id < shengmus[idx].size(); ++py_id) {
+                    prefix += shengmus[idx][py_id];
+                    if (prefixes.insert(prefix).second && prefix.length() < len)
+                        keys.push_back(prefix);
+                }
+            }
+
+            return true;
         }
 };
 
