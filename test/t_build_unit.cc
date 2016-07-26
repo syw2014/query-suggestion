@@ -125,7 +125,7 @@ void build() {
 void getDataModule() {
     gendata();
 
-    std::vector<std::string> terms;
+    TermInfoType terms;
     KeyTermIDsType key_termids;
     pBuild->GetDataModule(terms, key_termids);
 

@@ -33,6 +33,8 @@
 typedef std::vector<std::pair<uint32_t, double> > TermIDTFType;
 typedef boost::unordered_map<std::string, TermIDTFType> KeyInfoType;
 typedef boost::unordered_map<std::string, std::vector<uint32_t> > KeyTermIDsType;
+typedef std::pair<double, uint32_t> TFResPairType;  // term frequency and reserve , now the reserve used as searching result number 
+typedef std::vector<std::pair<std::string, TFResPairType> > TermInfoType;
 
 // Build engine for data module build
 // Provide  interfaces for data module building.
@@ -52,7 +54,7 @@ class BuildEngine {
         std::auto_ptr<SegmentWrapper> segWrapper_;  // chinese string tokenizer
         std::auto_ptr<Dictionary> pySegDict_;       // pinyin tokenizer
         
-        std::vector<std::string> terms_;  // total term set generated from corpus
+        TermInfoType termsInfo_;          // total term set and it's corresponding infos(tf, numbers) generated from corpus
         std::vector<double> tf_;          // term frequency , it was corresponded to words in terms_
         KeyTermIDsType key_termIds_;      // key(prefix) to term ids map
 
@@ -135,18 +137,18 @@ class BuildEngine {
         }
 
         ~BuildEngine() {
-            terms_.clear();
+            termsInfo_.clear();
             tf_.clear();
             key_termIds_.clear();
         }
 
         // get data building results
-        void GetDataModule(std::vector<std::string>& terms
+        void GetDataModule(TermInfoType& termsInfo
                            ,KeyTermIDsType& key_termids) {
-            terms.clear();
+            termsInfo.clear();
             key_termids.clear();
 
-            terms.swap(terms_);
+            termsInfo.swap(termsInfo_);
             key_termids.swap(key_termIds_);
         }
 
@@ -156,7 +158,7 @@ class BuildEngine {
         // term \t freq \t result_num
         // the separator is tab
         bool Build(const std::string& nm) {
-            terms_.clear();
+            termsInfo_.clear();
             tf_.clear();
             key_termIds_.clear();
             
@@ -168,8 +170,8 @@ class BuildEngine {
 
             std::cout << "Start building...\n";
             std::string line;
-            std::map<std::string, double> t_freq;
-            // extract term and it's freq
+            std::map<std::string, TFResPairType> t_freqRes;  // term , tf, result_num
+            // extract term, it's freq and result number
             while (getline(ifs, line)) {
                 if (line.empty())
                     continue;
@@ -185,6 +187,18 @@ class BuildEngine {
                     continue;
                 term = vec[0];
                 double freq = 0.0;
+                uint32_t result_num = 0;
+                // result num or other meanings
+                if (vec.size() != 3)
+                    result_num = 0;
+                else {
+                    try {
+                        result_num = boost::lexical_cast<int>(vec[2]);
+                    } catch(...) {
+                         result_num = 0;
+                    }
+                }
+                // term frequency
                 try {
                     freq = boost::lexical_cast<double>(vec[1]);
                 } catch(...) {
@@ -192,25 +206,25 @@ class BuildEngine {
                     std::cout << "bad line in:" << nm << ":" << line << std::endl;
                     continue;
                 }
-                t_freq[term] = freq;
+                t_freqRes[term] = std::make_pair(freq, result_num);
             }
             ifs.close();
             //std::cout << "T: " << t_freq.size() << std::endl;
             // step2, store term and it's freq
-            std::map<std::string, double>::iterator it = t_freq.begin();
-            uint32_t size = t_freq.size();
-            terms_.resize(size);
+            std::map<std::string, TFResPairType>::iterator it = t_freqRes.begin();
+            uint32_t size = t_freqRes.size();
+            termsInfo_.resize(size);
             tf_.resize(size);
-            for (uint32_t idx = 0; it != t_freq.end() && idx < size; ++it, ++idx) {
-                terms_[idx] = it->first;
-                tf_[idx] = it->second;
+            for (uint32_t idx = 0; it != t_freqRes.end() && idx < size; ++it, ++idx) {
+                termsInfo_[idx] = std::make_pair(it->first, it->second); // store term info
+                tf_[idx] = it->second.first; // tf
             }
-            t_freq.clear();
+            t_freqRes.clear();
             //std::cout << "TT: " << terms_.size() << "\t " << tf_.size() << std::endl;
             // step3, generate keys
             KeyInfoType key_info;
-            for (uint32_t idx = 0; idx < terms_.size(); ++idx) {
-                Generate(terms_[idx], idx, key_info);
+            for (uint32_t idx = 0; idx < termsInfo_.size(); ++idx) {
+                Generate(termsInfo_[idx].first, idx, key_info);
             }
 
             // step4 , compuate score for every key
@@ -262,8 +276,10 @@ class BuildEngine {
                 return false;
             }
             // store terms
-            for (uint32_t i = 0; i < terms_.size(); ++i) {
-                ofs_term << i << "\t" << terms_[i] << "\n";
+            for (uint32_t i = 0; i < termsInfo_.size(); ++i) {
+                ofs_term << i << "\t" << termsInfo_[i].first << "\t"
+                  << termsInfo_[i].second.first << "\t" 
+                  << termsInfo_[i].second.second << "\n";
             }
             ofs_term.close();
 
@@ -273,17 +289,17 @@ class BuildEngine {
                 std::vector<uint32_t>& ids = iter->second;
                 // candidate is itself
                 // do not suggestion itself
-                if (ids.size() == 1 && ids[0] < terms_.size() && terms_[ids[0]] == iter->first)
+                if (ids.size() == 1 && ids[0] < termsInfo_.size() && termsInfo_[ids[0]].first == iter->first)
                     continue;
                 ofs_key << iter->first; // key
                 for (uint32_t i = 0; i < ids.size(); ++i) {
                     // make sure id is in the range of term vector
-                    if (ids[i] > terms_.size())
+                    if (ids[i] > termsInfo_.size())
                         continue;
                     // do not suggest itself
-                    if (iter->first == terms_[ids[i]])
+                    if (iter->first == termsInfo_[ids[i]].first)
                         continue;
-                    ofs_key << "\t" << terms_[ids[i]];
+                    ofs_key << "\t" << termsInfo_[ids[i]].first;
                 }
                 ofs_key << "\n";
             }
