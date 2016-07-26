@@ -36,4 +36,4 @@ $(PROG4): $(PROG4).cc
 
 
 clean:
-	rm -rf $(PROG1) $(PROG2) $(PROG3) $(PROG4) *.exe *.dSYM *.obj *.exp .*o *.lib
+	rm -rf $(PROG1) $(PROG2) $(PROG3) $(PROG4) *.exe *.dSYM *.obj *.exp .*o *.lib .*.txt

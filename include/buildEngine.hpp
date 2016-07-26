@@ -195,6 +195,7 @@ class BuildEngine {
                 t_freq[term] = freq;
             }
             ifs.close();
+            //std::cout << "T: " << t_freq.size() << std::endl;
             // step2, store term and it's freq
             std::map<std::string, double>::iterator it = t_freq.begin();
             uint32_t size = t_freq.size();
@@ -205,7 +206,7 @@ class BuildEngine {
                 tf_[idx] = it->second;
             }
             t_freq.clear();
-
+            //std::cout << "TT: " << terms_.size() << "\t " << tf_.size() << std::endl;
             // step3, generate keys
             KeyInfoType key_info;
             for (uint32_t idx = 0; idx < terms_.size(); ++idx) {
@@ -233,7 +234,7 @@ class BuildEngine {
                         termsid.push_back(info[i].first);
                     }
                 }
-                key_termIds_[it->first].swap(termsid);
+                key_termIds_[iter->first].swap(termsid);
                 uniq_ids.clear();
             }
 
