@@ -10,6 +10,6 @@
 
 #include <boost/test/unit_test.hpp>
 //#include <boost/test/included/unit_test.hpp>
-
+#include <boost/shared_ptr.hpp>
 #endif // unit_test.h
 

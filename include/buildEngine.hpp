@@ -176,6 +176,7 @@ class BuildEngine {
                 if (line.empty())
                     continue;
                 boost::algorithm::trim(line);
+                boost::to_lower(line);
                 std::size_t pos = line.find("\t");
                 if (pos == std::string::npos)
                     continue;
