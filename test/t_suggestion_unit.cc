@@ -35,7 +35,7 @@ void gendata() {
 // remove space
 void print_str(const std::string& str) {
     std::cout << "===========RemoveSpace===========\nInput:" << str << std::endl;
-    std::cout << "Result: " << pSuggest->RemoveSpace(str) << std::endl;
+    std::cout << "Result:" << pSuggest->RemoveSpace(str) << std::endl;
 }
 
 // Case 1, Suggestion::RemoveSpace()

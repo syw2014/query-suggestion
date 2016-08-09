@@ -48,7 +48,7 @@ class BuildEngine {
 
         static const uint32_t topK_ = 15;     // default number of candidate words
 
-        static std::string res_dir_;           // resource directory, pinyin and token resource
+        //static std::string res_dir_;           // resource directory, pinyin and token resource
 
         // main data structure
         std::auto_ptr<SegmentWrapper> segWrapper_;  // chinese string tokenizer
@@ -59,7 +59,10 @@ class BuildEngine {
         KeyTermIDsType key_termIds_;      // key(prefix) to term ids map
 
         std::set<std::string> shm_ ;      // total sheng mu set
+        public:
 
+        static std::string res_dir_;           // resource directory, pinyin and token resource
+        private:
 
         // extract sheng mu from pinyin
         // @pinyin: pinyin string vector

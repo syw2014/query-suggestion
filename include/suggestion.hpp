@@ -15,6 +15,8 @@
 #include <iostream>
 #include "buildEngine.hpp"
 
+// static global resource directory in build engine
+std::string BuildEngine::res_dir_ = "";
 // Suggestion class to used for getting the final result and data updating.
 class Suggestion {
     private:
@@ -33,7 +35,7 @@ class Suggestion {
                 std::cout << "The resource directory may like \"../resource/\"\n";
                 return;
             }
-            std::string BuildEngine::res_dir_(res_dir_); 
+            BuildEngine::res_dir_ = res_dir_; 
             pBuild_.reset(new BuildEngine());
         }
         
@@ -74,14 +76,14 @@ class Suggestion {
         // @input: the input string
         // @return: return the lowercase
         std::string RemoveSpace(const std::string& input) {
-            uint32_t state = 0, start = 0, end = 0;
+            uint32_t state = 0, start = 0, end = input.length();
             // from start to find the first element which is not space or tab
             for (; start < input.size(); ++start) {
                 if (input[start] != ' ' && input[start] != '\t') break;
             }
             
             // from end to find the first element which is not space or tab
-            for (; end > 0;) {
+            for (; end > 0;--end) {
                 if (input[end-1] != ' ' && input[end - 1 ] != '\t') break;
             }
 
