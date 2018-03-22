@@ -82,6 +82,7 @@ class BuildEngine {
                 else {
                     std::string ch;
                     ch += py[0]; // first char
+                    //TODO, To be confirm this logistic
                     if ((char)py[0] >= 0) {
                         if (head.insert(ch).second)
                             shm.push_back(ch);
@@ -123,7 +124,7 @@ class BuildEngine {
             pySegDict_.reset(new Dictionary(res_dir_+"cn"));
 
             // load shengmu from files.
-            // b,p,m,f,d,t,n,l,g,k,k,j,q,x,zh,ch,sh,r,z,c,s,y,w
+            // b,p,m,f,d,t,n,l,g,k,j,q,x,zh,ch,sh,r,z,c,s,y,w
             std::ifstream ifs((res_dir_+"cn/ShengMu.txt").c_str());
             if (!ifs) {
                 std::cout << "Open file " << (res_dir_+"cn/ShengMu.txt") << "failed!" << std::endl;
