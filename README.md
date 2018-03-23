@@ -16,7 +16,7 @@ an enough big corpus so the suggestion words you want may not recommended.Anyway
 
 ### 3. Usage
 
-### 5. Roadmap
+### 4. Roadmap
 - ~~1. Combine normalization module in include/segment/normalize.h and include/util/normalize.h~~
 - ~~2. Add more unit test for normalization module~~
 - ~~3. Design the old algorithm system framwork.~~
@@ -24,3 +24,5 @@ an enough big corpus so the suggestion words you want may not recommended.Anyway
 - 5 . Collect algorithm papers and documents.
 - 6 . Choose one more effectient algorithm.
 
+### 5. Contact
+If you have any questions ,suggestions or ideas you can contact me with *jerryshi0110@gmail.com*
